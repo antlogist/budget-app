@@ -1,9 +1,9 @@
 <template>
     <div id="app">
-        <Form @submitForm="onFormSubmit"></Form>
-        <TotalBalance :total="totalBalance"></TotalBalance>
+        <Form></Form>
+        <TotalBalance></TotalBalance>
         <SortingButtons @sortItems="sortItems"></SortingButtons>
-        <BudgetList :list="list" :sortBy="sortBy" @deleteItem="openDeleteDialog"></BudgetList>
+        <BudgetList :list="getList" :sortBy="sortBy" @deleteItem="openDeleteDialog"></BudgetList>
         <Dialog
             :message="dialogMessage"
             :dialogVisible="dialogVisible"
@@ -14,6 +14,9 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+import { mapActions } from "vuex";
+
 import BudgetList from "@/components/BudgetList";
 import TotalBalance from "@/components/TotalBalance";
 import Form from "@/components/Form";
@@ -22,54 +25,26 @@ import SortingButtons from "@/components/SortingButtons";
 export default {
     name: "App",
     data: () => ({
-        list: {
-            1: {
-                type: "INCOME",
-                value: 100,
-                comment: "Some income comment",
-                id: 1
-            },
-            2: {
-                type: "OUTCOME",
-                value: -50,
-                comment: "Some outcome comment",
-                id: 2
-            }
-        },
         dialogMessage: "Do you want to delete the message?",
         dialogVisible: false,
         idDelete: "",
         sortBy: "ALL"
     }),
     computed: {
-        totalBalance() {
-            return Object.values(this.list).reduce(
-                (acc, item) => acc + item.value,
-                0
-            );
-        }
+        ...mapGetters("list", ["getList"]),
     },
     methods: {
+        ...mapActions("list", ["deleteItem"]),
         openDeleteDialog(id) {
             this.dialogMessage = "Do you want to delete the message?";
             this.idDelete = id;
             this.dialogVisible = true;
         },
-        deleteItem() {
-            this.$delete(this.list, this.idDelete);
-        },
-        onFormSubmit(data) {
-            const newObj = {
-                ...data,
-                id: String(Math.random())
-            };
-            this.$set(this.list, newObj.id, newObj);
-        },
         dialogCancel() {
             this.dialogVisible = false;
         },
         dialogConfirm() {
-            this.deleteItem();
+            this.deleteItem(this.idDelete);
             this.dialogVisible = false;
         },
         sortItems(type) {
